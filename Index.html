@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Amazon Credit Card Survey</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Amazon+Ember:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Amazon Ember', Arial, sans-serif;
+      background: #fff;
+      margin: 0; padding: 30px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      color: #111;
+    }
+    h1 {
+      font-weight: 700;
+      font-size: 24px;
+      color: #146eb4;
+      margin-bottom: 20px;
+    }
+    .survey-container {
+      max-width: 420px;
+      width: 100%;
+      border: 1px solid #ddd;
+      padding: 25px 20px 40px 20px;
+      border-radius: 6px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      background: #f7f7f7;
+      position: relative;
+      min-height: 200px;
+    }
+    .question {
+      font-weight: 600;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    .options button {
+      display: block;
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 12px 18px;
+      font-size: 16px;
+      font-weight: 500;
+      border: 1px solid #146eb4;
+      border-radius: 5px;
+      background: white;
+      color: #146eb4;
+      cursor: pointer;
+      transition: background 0.25s, color 0.25s;
+      user-select: none;
+      position: relative;
+    }
+    .options button:hover {
+      background: #146eb4;
+      color: white;
+    }
+    #forgive-buttons {
+      position: relative;
+      height: 100px;
+    }
+    #yes-btn, #no-btn {
+      position: absolute;
+      top: 30px;
+      padding: 14px 30px;
+      font-size: 18px;
+      border-radius: 6px;
+      border: none;
+      font-weight: 700;
+      user-select: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #yes-btn {
+      left: 20%;
+      background-color: #ff9900;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(255,153,0,0.6);
+      width: 120px;
+    }
+    #yes-btn:hover {
+      background-color: #cc7a00;
+    }
+    #no-btn {
+      left: 60%;
+      background-color: #d9534f;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(217,83,79,0.6);
+      width: 120px;
+    }
+    #no-btn:hover {
+      background-color: #b23b3a;
+    }
+    #message {
+      margin-top: 30px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #d6336c;
+      text-align: center;
+      min-height: 30px;
+      user-select: none;
+    }
+
+    /* Balloon styles */
+    .balloon {
+      position: fixed;
+      bottom: -150px;
+      width: 50px;
+      height: 70px;
+      background: #d6336c;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      opacity: 0.9;
+      animation-name: rise;
+      animation-timing-function: ease-out;
+      animation-iteration-count: 1;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    .balloon::after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      width: 2px;
+      height: 15px;
+      background: #d6336c;
+      transform: translateX(-50%);
+    }
+    @keyframes rise {
+      0% { transform: translateY(0) scale(1); opacity: 0.9;}
+      100% { transform: translateY(-120vh) scale(1.2); opacity: 0;}
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Amazon Credit Card Survey</h1>
+  <div class="survey-container" id="survey">
+    <!-- Questions go here -->
+  </div>
+
+  <div id="message"></div>
+
+  <script>
+    const surveyData = [
+      {
+        question: "Did you recently authorize a treadmill purchase on your card?",
+        options: ["Yes", "No", "Maybe", "Not sure"]
+      },
+      {
+        question: "Is Shrividya your wife, girlfriend, or something else?",
+        options: ["Wife", "Girlfriend", "Friend", "Other"]
+      },
+      {
+        question: "Do you love Shrividya?",
+        options: ["Yes", "No", "Sometimes", "Of course!"]
+      },
+      {
+        question: "Sorry na baby, me nahi na jaanr prt bol na mjh sobt. Will you forgive me or not?",
+        options: ["Yes", "No"]
+      }
+    ];
+
+    const surveyContainer = document.getElementById('survey');
+    const messageDiv = document.getElementById('message');
+    let currentQ = 0;
+
+    function showQuestion() {
+      messageDiv.textContent = '';
+      surveyContainer.innerHTML = '';
+      const q = surveyData[currentQ];
+
+      const questionEl = document.createElement('div');
+      questionEl.className = 'question';
+      questionEl.textContent = q.question;
+      surveyContainer.appendChild(questionEl);
+
+      const optionsDiv = document.createElement('div');
+      optionsDiv.className = 'options';
+
+      q.options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.textContent = option;
+        optionsDiv.appendChild(btn);
+
+        if (currentQ === surveyData.length -1) {
+          btn.id = option.toLowerCase() === 'yes' ? 'yes-btn' : 'no-btn';
+
+          if(option.toLowerCase() === 'no') {
+            btn.addEventListener('mouseenter', () => moveNoButton(btn));
+            btn.addEventListener('touchstart', e => {
+              e.preventDefault();
+              moveNoButton(btn);
+            }, { passive: false });
+          }
+          if(option.toLowerCase() === 'yes') {
+            btn.addEventListener('click', () => {
+              btn.disabled = true;
+              startBalloons();
+              messageDiv.textContent = "I love you forever my sweetheart ♥️";
+            });
+          }
+        } else {
+          btn.addEventListener('click', () => {
+            currentQ++;
+            showQuestion();
+          });
+        }
+      });
+
+      surveyContainer.appendChild(optionsDiv);
+
+      if (currentQ === surveyData.length - 1) {
+        optionsDiv.style.position = 'relative';
+        optionsDiv.style.height = '100px';
+        optionsDiv.style.display = 'flex';
+        optionsDiv.style.justifyContent = 'center';
+        optionsDiv.style.alignItems = 'center';
+        optionsDiv.style.gap = '40px';
+
+        const yesBtn = document.getElementById('yes-btn');
+        const noBtn = document.getElementById('no-btn');
+
+        if (yesBtn && noBtn) {
+          yesBtn.style.position = 'absolute';
+          yesBtn.style.left = '20%';
+          yesBtn.style.top = '30px';
+
+          noBtn.style.position = 'absolute';
+          noBtn.style.left = '60%';
+          noBtn.style.top = '30px';
+        }
+      }
+    }
+
+    function moveNoButton(btn) {
+      const containerRect = surveyContainer.getBoundingClientRect();
+      const btnWidth = btn.offsetWidth;
+      const btnHeight = btn.offsetHeight;
+
+      let newLeft = Math.random() * (containerRect.width - btnWidth);
+      let newTop = Math.random() * (containerRect.height - btnHeight);
+
+      btn.style.left = newLeft + 'px';
+      btn.style.top = newTop + 'px';
+    }
+
+    function startBalloons() {
+      const balloonCount = 20;
+      for(let i = 0; i < balloonCount; i++) {
+        createBalloon(i * 200);
+      }
+    }
+
+    function createBalloon(delay = 0) {
+      const balloon = document.createElement('div');
+      balloon.classList.add('balloon');
+      balloon.style.left = Math.random() * window.innerWidth + 'px';
+      balloon.style.animationDuration = (4 + Math.random()*3) + 's';
+      balloon.style.animationDelay = delay + 'ms';
+
+      document.body.appendChild(balloon);
+
+      balloon.addEventListener('animationend', () => {
+        balloon.remove();
+      });
+    }
+
+    showQuestion();
+  </script>
+
+</body>
+</html>
